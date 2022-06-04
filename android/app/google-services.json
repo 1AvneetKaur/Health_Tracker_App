@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "332937608823",
+    "project_id": "my-health-tracker-199da",
+    "storage_bucket": "my-health-tracker-199da.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:332937608823:android:3e797d07595369161b1072",
+        "android_client_info": {
+          "package_name": "com.avneet.my_health_tracker_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "332937608823-9kvdhfskjl7lspk59dcnfouej7hnepcn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAU5fD7Igo8ZSo0tLUf8pPO2S9vFZAb47g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "332937608823-9kvdhfskjl7lspk59dcnfouej7hnepcn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
