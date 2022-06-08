@@ -1,9 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:developer';
 
-void main() async{
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(const MyApp());
@@ -38,22 +40,52 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   String age = "";
   String bp = "";
+  late DocumentReference _documentReference;
+  late SharedPreferences _preferences;
 
-  createTracker() {
-    DocumentReference documentReference = FirebaseFirestore.instance.collection("My Tracker").doc("bp");
-    Map<String, String> userList = {"Age": age, "BP": bp};
-    documentReference.set(userList, SetOptions(merge: true)).whenComplete(() => print("Data Stored!"));
+  _createDocumentReference() async {
+    _preferences = await SharedPreferences.getInstance();
+    String? docId = _preferences.getString("doc_id");
+    if (docId == null) {
+      _documentReference =
+          FirebaseFirestore.instance.collection("My Tracker").doc();
+      _preferences.setString("doc_id", _documentReference.id);
+    } else {
+      _documentReference =
+          FirebaseFirestore.instance.collection("My Tracker").doc(docId);
+    }
+  }
 
+  @override
+  void initState() {
+    super.initState();
+    _createDocumentReference();
+  }
+
+  createTracker() async {
+    Map<String, String> bpData = {"Age": age, "BP": bp};
+    await _documentReference
+        .collection("BP")
+        .doc()
+        .set(bpData, SetOptions(merge: true))
+        .whenComplete(
+      () {
+        log("Data Stored!");
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Data Stored!")));
+        Navigator.pop(context);
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Health Tracker App'),
+        title: const Text('Health Tracker App'),
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.account_circle_outlined),
+            icon: const Icon(Icons.account_circle_outlined),
             onPressed: () {},
           )
         ],
@@ -61,54 +93,56 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[Text("Add your today's health record here")],
+          children: const <Widget>[
+            Text("Add your today's health record here"),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
           onPressed: () {
             showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      title: Text('Today'),
-                      content: Container(
-                          width: 400,
-                          height: 200,
-                          child: Column(
-                            children: [
-                              TextField(
-                                decoration: new InputDecoration.collapsed(
-                                    hintText: 'add your age'),
-                                onChanged: (String value) {
-                                  age = value;
-                                },
-                              ),
-                              Text(''),
-                              TextField(
-                                decoration: new InputDecoration.collapsed(
-                                    hintText: 'add your BP'),
-                                onChanged: (String value) {
-                                  bp = value;
-                                },
-                              )
-                            ],
-                          )),
-                      actions: <Widget>[
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              createTracker();
-                            });
-                          },
-                          child: Text('Add'),
-                        )
-                      ]);
-                });
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  title: const Text('Today'),
+                  content: SizedBox(
+                      width: 400,
+                      height: 200,
+                      child: Column(
+                        children: [
+                          TextField(
+                            decoration: const InputDecoration.collapsed(
+                              hintText: 'add your age',
+                            ),
+                            onChanged: (String value) {
+                              age = value;
+                            },
+                          ),
+                          const Text(''),
+                          TextField(
+                            decoration: const InputDecoration.collapsed(
+                              hintText: 'add your BP',
+                            ),
+                            onChanged: (String value) {
+                              bp = value;
+                            },
+                          )
+                        ],
+                      )),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: createTracker,
+                      child: const Text('Add'),
+                    )
+                  ],
+                );
+              },
+            );
           },
-          child: Icon(Icons.add,
+          child: const Icon(Icons.add,
               color: Colors
                   .white)), // This trailing comma makes auto-formatting nicer for build methods.
     );
